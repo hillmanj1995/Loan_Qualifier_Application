@@ -22,7 +22,7 @@ This analysis was based in Python 3.7, and used the following libraries:
 
 Prior to running the application, the following libraries must be installed:
 
-![libraries.png]()
+![libraries.png](https://github.com/hillmanj1995/Loan_Qualifier_Application/blob/main/image/libraries.png)
 
 ---
 
@@ -34,7 +34,7 @@ To use the loan application, one must clone the git repository and run the follo
 
 When prompted, the applicant must input data for a series of questions for the application to run, then they will decide whether they would like to save the resulting data to a CSV:
 
-![app.png]()
+![app.png](https://github.com/hillmanj1995/Loan_Qualifier_Application/blob/main/image/app.png)
 
 ---
 
