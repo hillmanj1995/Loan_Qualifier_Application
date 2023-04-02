@@ -1,37 +1,32 @@
-# Initial imports
-import csv
-from pathlib import Path
-import fire
+# -*- coding: utf-8 -*-
+"""Loan Qualifier Application.
+
+This is a command line application to match applicants with qualifying loans.
+
+Example:
+    $ python app.py
+"""
+#library imports
 import sys
+import fire
 import questionary
+from pathlib import Path
+import csv
 
-# Trying to resolve path issue
-#from sys import path
-#path.append('../Loan_Qualifier_Application/qualifier/utils')
-
-# For some reason, python is having issues with the path to the utils folder
-#from qualifier.utils.fileio import load_csv
-#from qualifier.utils.calculators import (calculate_monthly_debt_ratio, calculate_loan_to_value_ratio)
-
-# No issue when it is in same folder
+# File didnt work using dot notation to qualifier folders, so I moved all modules to the same folder as the app code
 from fileio import load_csv
-from calculators import (calculate_monthly_debt_ratio, calculate_loan_to_value_ratio)
 
+from calculators import (
+    calculate_monthly_debt_ratio,
+    calculate_loan_to_value_ratio,
+)
 
-# filters dont run when in dot notation
-#from qualifier.filters.max_loan_size import filter_max_loan_size
-#from qualifier.filters.credit_score import filter_credit_score
-#from qualifier.filters.debt_to_income import filter_debt_to_income
-#from qualifier.filters.loan_to_value import filter_loan_to_value
-
-# No issue when it is in same folder
 from max_loan_size import filter_max_loan_size
 from credit_score import filter_credit_score
 from debt_to_income import filter_debt_to_income
 from loan_to_value import filter_loan_to_value
 
-# This function loads a CSV file with the list of banks and available loans information
-# from the file defined in `file_path`
+# function that asks for a file path to the data set
 def load_bank_data():
     """Ask for the file path to the latest banking data and load the CSV file.
 
@@ -41,9 +36,12 @@ def load_bank_data():
 
     csvpath = questionary.text("Enter a file path to a rate-sheet (.csv):").ask()
     csvpath = Path(csvpath)
+    if not csvpath.exists():
+        sys.exit(f"Oops! Can't find this path: {csvpath}")
 
     return load_csv(csvpath)
 
+#function that asks a series of questions to gather financial data
 def get_applicant_info():
     """Prompt dialog to get the applicant's financial information.
 
@@ -65,10 +63,7 @@ def get_applicant_info():
 
     return credit_score, debt, income, loan_amount, home_value
 
-# This function implements the following user story:
-# As a customer,
-# I want to know what are the best loans in the market according to my financial profile
-# so that I can choose the best option according to my needs
+#function that takes the answers from the financial data and determines applicable loans
 def find_qualifying_loans(bank_data, credit_score, debt, income, loan, home_value):
     """Determine which loans the user qualifies for.
 
@@ -109,7 +104,52 @@ def find_qualifying_loans(bank_data, credit_score, debt, income, loan, home_valu
 
     return bank_data_filtered
 
-# This function is the main execution point of the application. It triggers all the business logic.
+# function that asks if you want to save the loan info to a csv
+def save_qualifying_loans(qualifying_loans):
+    """Saves the qualifying loans to a CSV file.
+
+    Args:
+        qualifying_loans (list of lists): The qualifying bank loans.
+    """
+    # @TODO: Complete the usability dialog for savings the CSV Files.
+    number_of_qualifying_loans = len(qualifying_loans)
+
+    saveFile = questionary.confirm(
+            'do you want to save your qualifying bank loans?').ask()
+
+    if number_of_qualifying_loans < 1:
+        sys.exit(
+                f"Oops! Can't find any possible lender based on your financial information.")
+
+    if saveFile == True:
+        csvpath = questionary.text(
+            'please provide a file_path to save your qualifying bank loan list:(qualifying_loans.csv)').ask()
+        save_csv(Path(csvpath), qualifying_loans)
+
+    else:
+        sys.exit('the list of qualifying loans has not been saved.')
+
+# function that saves the loan info to a csv
+def save_csv(csvpath, data):
+    """Open a new CSV path for saving the CSV file to path provided.
+    Args:
+        csvpath (Path): The csv file path.
+    Returns:
+        A list of lists that contains the rows of data from the CSV file.
+    """
+    # creates new csv read and write path
+    with open(csvpath, "r+", newline='') as csvfile:
+        # create new csv writer
+        csvwriter = csv.writer(csvfile, delimiter=",")
+        header = ['Lender', 'Max Loan Amount', 'Max LTV',
+                  'Max DTI', 'Min Credit Score', 'Interest Rate']
+        if header:
+            # add header to new csv file
+            csvwriter.writerow(header)
+        # inputs data in each row of new csv file
+        csvwriter.writerows(data)
+        print(f'the list of qualifying loans has has now been saved to: {str(csvpath)}')
+
 def run():
     """The main function for running the script."""
 
@@ -123,6 +163,10 @@ def run():
     qualifying_loans = find_qualifying_loans(
         bank_data, credit_score, debt, income, loan_amount, home_value
     )
+
+    # Save qualifying loans
+    save_qualifying_loans(qualifying_loans)
+
 
 if __name__ == "__main__":
     fire.Fire(run)
