@@ -31,7 +31,7 @@ def load_bank_data():
         The bank data from the data rate sheet CSV file.
     """
 
-    csvpath = questionary.text("Enter a file path to a rate-sheet (.csv):").ask()
+    csvpath = questionary.text("...\loan_qualifier_app\data").ask()
     csvpath = Path(csvpath)
     if not csvpath.exists():
         sys.exit(f"Oops! Can't find this path: {csvpath}")
@@ -110,13 +110,44 @@ def save_qualifying_loans(qualifying_loans):
     """
     # @TODO: Complete the usability dialog for savings the CSV Files.
     # YOUR CODE HERE!
+    number_of_qualifying_loans = len(qualifying_loans)
 
+    saveFile = questionary.confirm(
+        'do you want to save your qualifying bank loans?').ask()
+
+    if number_of_qualifying_loans < 1:
+        sys.exit(
+            f"Oops! Can't find any possible lender based on your financial information.")
+
+    if saveFile == True:
+        csvpath = questionary.text(
+            'please provide a file_path to save your qualifying bank loan list:(qualifying_loans.csv)').ask()
+        save_csv(Path(csvpath), qualifying_loans)
+
+    else:
+        sys.exit('the list of qualifying loans has not been saved.')
+
+
+import csv
+def save_csv(csvpath, data):
+
+    output_path = Path('...\loan_qualifier_app')
+
+    with open(output_path, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile, delimiter=',')
+        header = ['Lender', 'Max Loan Amount', 'Max LTV',
+                  'Max DTI', 'Min Credit Score', 'Interest Rate']
+    if header:
+        csvwriter.writerow(header)
+        csvwriter.writerows(data)
+        print(f'the list of qualifying loans has has now been saved to: {str(csvpath)}')
 
 def run():
     """The main function for running the script."""
+    file_path = "..\Loan_Qualifier_Application\Challenge\Starter_Code\loan_qualifier_app\data"
 
     # Load the latest Bank data
-    bank_data = load_bank_data()
+    bank_data = load_bank_data(file_path)
 
     # Get the applicant's information
     credit_score, debt, income, loan_amount, home_value = get_applicant_info()
